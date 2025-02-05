@@ -296,6 +296,11 @@ def combine_imputed_and_wgs_data() :
     df = df_imp
 
     ##
+    # reverse the coding for the WGS data
+    df[v.g1_wgs] = 2 - df[v.g1_wgs]
+    df[v.g2_wgs] = 2 - df[v.g2_wgs]
+
+    ##
     df[v.g1_minus_g2] = df[v.g1_wgs] - df[v.g2_wgs]
     df[v.g1_plus_g2] = df[v.g1_wgs] + df[v.g2_wgs]
     df[v.g1_minus_g2_imp] = df[v.g1_imp] - df[v.g2_imp]
@@ -361,6 +366,10 @@ def get_some_basic_stats_on_model_data() :
 
     ##
     df[[v.rsid, v.quality]].drop_duplicates().groupby(v.quality).count()
+
+    ##
+
+
 
     ##
 
