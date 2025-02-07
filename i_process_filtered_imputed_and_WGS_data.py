@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 from bgen_reader import open_bgen
+from mirutil.compress import compress_and_split_parallel
 
 
 class Var :
@@ -20,7 +21,6 @@ class Var :
     g1_minus_g2_imp = 'g1_minus_g2_imp'
     info = 'info_score'
     quality = 'quality'
-
 
 
 class Directory :
@@ -43,6 +43,7 @@ class FilePath :
     impupted_data_bgen = d.imputed_data / '200_snps_chr22.bgen'
     imputed_data_parquet = d.med_csf / 'imputed_data.parquet'
     wgs_data_parquet = d.med_csf / 'wgs_data.parquet'
+    wgs_data_parquet_zst = d.med_csf / 'wgs_data.parquet.zst'
     model_data_0 = d.med_csf / 'model_data_0.parquet'
     rels = d.inp_csf / 'ukb_rel_with_infType_fs.csv'
     snps_data = d.inp_csf / 'many_high_and_low_quality_snps_on_chr22.txt'
@@ -77,6 +78,7 @@ def create_sibs_df() :
     return df
 
     ##
+
 
 def prepare_imputed_data() :
     pass
@@ -117,7 +119,7 @@ def prepare_imputed_data() :
     variants.shape
 
     ##
-    df_gt = pd.DataFrame(gt , columns = variants, index = df_iid[v.iid])
+    df_gt = pd.DataFrame(gt , columns = variants , index = df_iid[v.iid])
     df_gt.value_counts()
 
     ##
@@ -135,27 +137,42 @@ def prepare_imputed_data() :
     df_rsids = pd.DataFrame(variants)
 
     ##
-    df_imp = df_sibs.merge(df_rsids, how = 'cross')
-    df_imp = df_imp.rename(columns = {0 : v.rsid})
+    df_imp = df_sibs.merge(df_rsids , how = 'cross')
+    df_imp = df_imp.rename(columns = {
+            0 : v.rsid
+            })
 
     ##
-    df_imp = pd.merge(df_imp , melted_df , left_on = [v.id1 , v.rsid], right_on = [v.iid, v.rsid] , how = 'left')
+    df_imp = pd.merge(df_imp ,
+                      melted_df ,
+                      left_on = [v.id1 , v.rsid] ,
+                      right_on = [v.iid , v.rsid] ,
+                      how = 'left')
 
     ##
-    df_imp = df_imp.rename(columns = {v.gt : v.g1_imp})
+    df_imp = df_imp.rename(columns = {
+            v.gt : v.g1_imp
+            })
     df_imp = df_imp.drop(columns = [v.iid])
 
     ##
-    df_imp = pd.merge(df_imp , melted_df , left_on = [v.id2 , v.rsid], right_on = [v.iid, v.rsid] , how = 'left')
+    df_imp = pd.merge(df_imp ,
+                      melted_df ,
+                      left_on = [v.id2 , v.rsid] ,
+                      right_on = [v.iid , v.rsid] ,
+                      how = 'left')
 
     ##
-    df_imp = df_imp.rename(columns = {v.gt : v.g2_imp})
+    df_imp = df_imp.rename(columns = {
+            v.gt : v.g2_imp
+            })
     df_imp = df_imp.drop(columns = [v.iid])
 
     ##
     df_imp.to_parquet(fp.imputed_data_parquet , index = False)
 
     ##
+
 
 ##
 def get_all_wgs_filenames() :
@@ -176,12 +193,13 @@ def get_all_wgs_filenames() :
     ##
     return rsids
 
+
 ##
-def read_wgs_by_rsid(rsid):
+def read_wgs_by_rsid(rsid) :
     pass
 
     ##
-    def _test():
+    def _test() :
         pass
 
         ##
@@ -231,6 +249,7 @@ def read_wgs_by_rsid(rsid):
     ##
     return df_gt
 
+
 ##
 def combine_all_wgs_data() :
     pass
@@ -255,6 +274,7 @@ def combine_all_wgs_data() :
 
     ##
 
+
 ##
 def combine_imputed_and_wgs_data() :
     pass
@@ -271,10 +291,16 @@ def combine_imputed_and_wgs_data() :
     df_wgs = pd.read_parquet(fp.wgs_data_parquet)
 
     ##
-    df_imp = pd.merge(df_imp , df_wgs , left_on = [v.id1, v.rsid], right_on = [v.iid, v.rsid] , how = 'left')
+    df_imp = pd.merge(df_imp ,
+                      df_wgs ,
+                      left_on = [v.id1 , v.rsid] ,
+                      right_on = [v.iid , v.rsid] ,
+                      how = 'left')
 
     ##
-    df_imp = df_imp.rename(columns = {v.gt : v.g1_wgs})
+    df_imp = df_imp.rename(columns = {
+            v.gt : v.g1_wgs
+            })
 
     ##
     df_imp = df_imp.drop(columns = [v.iid])
@@ -283,10 +309,16 @@ def combine_imputed_and_wgs_data() :
     df_imp = df_imp.dropna()
 
     ##
-    df_imp = pd.merge(df_imp , df_wgs , left_on = [v.id2, v.rsid], right_on = [v.iid, v.rsid] , how = 'left')
+    df_imp = pd.merge(df_imp ,
+                      df_wgs ,
+                      left_on = [v.id2 , v.rsid] ,
+                      right_on = [v.iid , v.rsid] ,
+                      how = 'left')
 
     ##
-    df_imp = df_imp.rename(columns = {v.gt : v.g2_wgs})
+    df_imp = df_imp.rename(columns = {
+            v.gt : v.g2_wgs
+            })
     df_imp = df_imp.drop(columns = [v.iid])
 
     ##
@@ -310,6 +342,7 @@ def combine_imputed_and_wgs_data() :
 
     ##
 
+
 def add_info_to_model_data() :
     pass
 
@@ -322,13 +355,16 @@ def add_info_to_model_data() :
     df = pd.read_parquet(fp.model_data_0)
 
     ##
-    df_info = pd.read_csv(fp.snps_data , sep = '\s', header = None)
+    df_info = pd.read_csv(fp.snps_data , sep = '\s' , header = None)
 
     ##
-    df_info = df_info.rename(columns = {1 : v.rsid, 7: v.info})
+    df_info = df_info.rename(columns = {
+            1 : v.rsid ,
+            7 : v.info
+            })
 
     ##
-    df_info = df_info[[v.rsid, v.info]]
+    df_info = df_info[[v.rsid , v.info]]
 
     ##
     df_info.describe()
@@ -337,12 +373,13 @@ def add_info_to_model_data() :
     df_info[v.quality] = np.where(df_info[v.info].ge(0.8) , 'high' , 'low')
 
     ##
-    df = pd.merge(df , df_info, on = v.rsid)
+    df = pd.merge(df , df_info , on = v.rsid)
 
     ##
     df.to_parquet(fp.model_data_1 , index = False)
 
     ##
+
 
 def get_some_basic_stats_on_model_data() :
     pass
@@ -359,20 +396,30 @@ def get_some_basic_stats_on_model_data() :
     df.describe()
 
     ##
-    df[[v.id1, v.id2]].drop_duplicates().count()
+    df[[v.id1 , v.id2]].drop_duplicates().count()
 
     ##
     df[v.rsid].nunique()
 
     ##
-    df[[v.rsid, v.quality]].drop_duplicates().groupby(v.quality).count()
+    df[[v.rsid , v.quality]].drop_duplicates().groupby(v.quality).count()
 
     ##
-
-
-
-    ##
-
 
 
 ##
+def compress_wgs_data_to_archive_on_github() :
+    pass
+
+    ##
+    d = Directory()
+    fp = FilePath()
+
+    ##
+    compress_and_split_parallel(fp.wgs_data_parquet)
+
+    ##
+
+    ##
+    
+    ##
