@@ -2,6 +2,10 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 from bgen_reader import open_bgen
+from mirutil.ns import make_class_instance_fr_json_file
+
+
+Env = make_class_instance_fr_json_file('n005_ENV.json')
 
 
 class Var :
@@ -9,7 +13,7 @@ class Var :
 
 
 class Directory :
-    proj_csf = '/Users/mmir/Library/CloudStorage/Dropbox/git/21A250115SF_WGS_imp_200_SNPS'
+    proj_csf = Env.csf
     proj_csf = Path(proj_csf)
     pf = proj_csf
 
@@ -32,7 +36,7 @@ def list_of_rsid_s() :
     ##
     fp = FilePath()
 
-    df = pd.read_csv(fp.snps_200 , sep = '\t', header = None)
+    df = pd.read_csv(fp.snps_200 , sep = '\t' , header = None)
 
     ##
     df = df[[1]]
@@ -40,6 +44,7 @@ def list_of_rsid_s() :
     df.to_csv(fp.rsid_list , header = None , index = False)
 
     ##
+
 
 """
 after this I use https://genome.ucsc.edu/cgi-bin/hgTables 
