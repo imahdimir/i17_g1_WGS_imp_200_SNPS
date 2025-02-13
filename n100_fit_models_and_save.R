@@ -2,6 +2,9 @@ list.of.packages <- c("data.table", "dplyr", "magrittr", "tidyverse", "plinkFile
 lapply(list.of.packages, library, character.only = TRUE)
 
 
+models_data_dir <- "/Users/mmir/Library/CloudStorage/Dropbox/git/250115_CSF_A21_WGS_imp_200_SNPS/med"
+
+
 # Define the function
 fit_and_save_models <- function(data, rsid_value) {
   
@@ -61,8 +64,8 @@ get_models_details <- function(model, rsid_value, model_name, coefs_df, model_me
 
 
 # read models data
-df <- read_parquet("/Users/mmir/Library/CloudStorage/Dropbox/git/21A250115SF_WGS_imp_200_SNPS/med/model_data_1.parquet")
-
+df <- read_parquet(glue("{models_data_dir}/model_data_1.parquet"))
+head(df)
 
 # Example usage
 out_models <- fit_and_save_models(
