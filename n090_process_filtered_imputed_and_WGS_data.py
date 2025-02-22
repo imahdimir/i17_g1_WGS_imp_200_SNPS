@@ -3,6 +3,7 @@ import pandas as pd
 from pathlib import Path
 from bgen_reader import open_bgen
 from mirutil.compress import compress_and_split_parallel
+from mirutil.compress import decompress_and_combine_parallel
 
 
 class Var :
@@ -11,6 +12,9 @@ class Var :
     gt = 'gt'
     g1_imp = 'g1_imp'
     g2_imp = 'g2_imp'
+    gt_dsg = 'gt_dsg'
+    gt_dsg_1 = 'gt_dsg_1'
+    gt_dsg_2 = 'gt_dsg_2'
     id1 = 'ID1'
     id2 = 'ID2'
     inf_type = 'infType'
@@ -19,12 +23,13 @@ class Var :
     g1_minus_g2 = 'g1_minus_g2'
     g1_plus_g2 = 'g1_plus_g2'
     g1_minus_g2_imp = 'g1_minus_g2_imp'
+    g1_minus_g2_imp_dsg = 'g1_minus_g2_imp_dsg'
     info = 'info_score'
     quality = 'quality'
 
 
 class Directory :
-    proj_csf = '/Users/mmir/Library/CloudStorage/Dropbox/git/21A250115SF_WGS_imp_200_SNPS'
+    proj_csf = '/Users/mmir/Library/CloudStorage/Dropbox/git/250115_CSF_A21_WGS_imp_200_SNPS'
     proj_csf = Path(proj_csf)
     pf = proj_csf
 
@@ -132,6 +137,29 @@ def prepare_imputed_data() :
                         value_name = v.gt)
 
     ##
+    gt_dsg = nd[: , : , 1] + 2 * nd[: , : , 2]
+    gt_dsg.shape
+
+    ##
+    df_gt_dsg = pd.DataFrame(gt_dsg ,
+                             columns = variants ,
+                             index = df_iid[v.iid])
+    df_gt_dsg.value_counts()
+
+    ##
+    df_gt_dsg = df_gt_dsg.reset_index()
+
+    ##
+    melted_df_dsg = pd.melt(df_gt_dsg ,
+                            id_vars = [v.iid] ,
+                            var_name = v.rsid ,
+                            value_name = v.gt_dsg)
+
+    ##
+    df_all_gt = pd.merge(melted_df , melted_df_dsg)
+    df_all_gt.head()
+
+    ##
     df_sibs = create_sibs_df()
 
     df_rsids = pd.DataFrame(variants)
@@ -141,32 +169,43 @@ def prepare_imputed_data() :
     df_imp = df_imp.rename(columns = {
             0 : v.rsid
             })
+    df_imp
 
     ##
     df_imp = pd.merge(df_imp ,
-                      melted_df ,
+                      df_all_gt ,
                       left_on = [v.id1 , v.rsid] ,
                       right_on = [v.iid , v.rsid] ,
                       how = 'left')
 
+    df_imp
+
     ##
     df_imp = df_imp.rename(columns = {
-            v.gt : v.g1_imp
+            v.gt     : v.g1_imp ,
+            v.gt_dsg : v.gt_dsg_1 ,
             })
     df_imp = df_imp.drop(columns = [v.iid])
 
+    df_imp
+
     ##
     df_imp = pd.merge(df_imp ,
-                      melted_df ,
+                      df_all_gt ,
                       left_on = [v.id2 , v.rsid] ,
                       right_on = [v.iid , v.rsid] ,
                       how = 'left')
 
+    df_imp
+
     ##
     df_imp = df_imp.rename(columns = {
-            v.gt : v.g2_imp
+            v.gt     : v.g2_imp ,
+            v.gt_dsg : v.gt_dsg_2
             })
     df_imp = df_imp.drop(columns = [v.iid])
+
+    df_imp
 
     ##
     df_imp.to_parquet(fp.imputed_data_parquet , index = False)
@@ -286,9 +325,11 @@ def combine_imputed_and_wgs_data() :
 
     ##
     df_imp = pd.read_parquet(fp.imputed_data_parquet)
+    df_imp
 
     ##
     df_wgs = pd.read_parquet(fp.wgs_data_parquet)
+    df_wgs
 
     ##
     df_imp = pd.merge(df_imp ,
@@ -296,6 +337,8 @@ def combine_imputed_and_wgs_data() :
                       left_on = [v.id1 , v.rsid] ,
                       right_on = [v.iid , v.rsid] ,
                       how = 'left')
+
+    df_imp
 
     ##
     df_imp = df_imp.rename(columns = {
@@ -325,6 +368,9 @@ def combine_imputed_and_wgs_data() :
     df_imp = df_imp.dropna()
 
     ##
+    df_imp
+
+    ##
     df = df_imp
 
     ##
@@ -333,9 +379,19 @@ def combine_imputed_and_wgs_data() :
     df[v.g2_wgs] = 2 - df[v.g2_wgs]
 
     ##
+    df.head()
+
+    ##
     df[v.g1_minus_g2] = df[v.g1_wgs] - df[v.g2_wgs]
     df[v.g1_plus_g2] = df[v.g1_wgs] + df[v.g2_wgs]
     df[v.g1_minus_g2_imp] = df[v.g1_imp] - df[v.g2_imp]
+    df[v.g1_minus_g2_imp_dsg] = df[v.gt_dsg_1] - df[v.gt_dsg_2]
+
+    ##
+    df = df.dropna()
+
+    ##
+    df
 
     ##
     df.to_parquet(fp.model_data_0 , index = False)
@@ -377,6 +433,9 @@ def add_info_to_model_data() :
 
     ##
     df.to_parquet(fp.model_data_1 , index = False)
+
+    ##
+    df
 
     ##
 
@@ -421,5 +480,13 @@ def compress_wgs_data_to_archive_on_github() :
     ##
 
     ##
-    
+
+    # decompress for use
+    decompress_and_combine_parallel(fp.wgs_data_parquet_zst)
+
+    ##
+
+
+    ##
+
     ##
