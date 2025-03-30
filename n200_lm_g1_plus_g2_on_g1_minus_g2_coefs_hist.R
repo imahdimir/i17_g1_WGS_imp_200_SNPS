@@ -52,3 +52,39 @@ ggsave(glue("{models_coefs_dir}/coefs_histograms.png"), plot = combined_plot_min
 
 
 
+###
+df <- read_excel(glue("{models_coefs_dir}/lm_g1_plus_g2_on_g1_minus_g2_coefficients.xlsx"))
+head(df)
+
+df <- df[df$term == "g1_minus_g2", ]
+df$term <- 'Slope'
+df=df[df$rsid != "rs11415427",]
+
+plot <- ggplot(df, aes(x = estimate)) +
+  geom_histogram(alpha = 0.4, position = "identity", bins = 30, color = "black", fill = "steelblue") +
+  
+  # Theoretical Mean Lines
+  geom_vline(data = subset(df, term == "g1_minus_g2"),
+             aes(xintercept = 0, color = "Theoretical Mean"), linewidth = 0.8, linetype = "dashed") +
+  
+  scale_color_manual(name = "Vertical Lines", values = vline_colors, guide = guide_legend(override.aes = list(
+    linetype = "solid",   # Solid lines in legend
+    linewidth = 2,        # Thicker for visibility
+    size = .6  # Custom height of short lines
+  ))) +
+  labs(x = "Estimate", y = "Frequency") +
+  theme_minimal() +
+  theme(
+    legend.position = "None",
+    # Increase axis labels (Estimate & Frequency)
+    axis.title = element_text(size = 14, face = "bold"),
+    
+    # Increase axis tick labels
+    axis.text = element_text(size = 12),
+    
+  )
+
+print(plot)
+
+ggsave(glue("{models_coefs_dir}/coefs_histograms_slope.png"), plot = plot)
+

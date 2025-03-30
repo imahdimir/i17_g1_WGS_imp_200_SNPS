@@ -118,3 +118,89 @@ ggsave(glue("{simple_reg_coefs_dir}/coefs_histograms.png"), plot = final_plot_mi
 
 
 
+###
+
+
+simple_reg_coefs_dir <- "/Users/mmir/Library/CloudStorage/Dropbox/git/250115_CSF_A21_WGS_imp_200_SNPS/out/simple_reg_models_coefficients"
+
+df <- read_excel(glue("{simple_reg_coefs_dir}/simple_reg_coefficients.xlsx"))
+head(df)
+
+rsid_df <- read_parquet("/Users/mmir/Library/CloudStorage/Dropbox/git/250115_CSF_A21_WGS_imp_200_SNPS/med/model_data_1.parquet")
+rsid_df
+
+rsid_df_selected <- rsid_df %>% select(rsid, info_score, quality)
+rsid_df_selected
+
+rsid_df_selected_unique <- rsid_df_selected %>% distinct(rsid, .keep_all = TRUE)
+
+merged_df <- df %>% left_join(rsid_df_selected_unique, by = "rsid")
+merged_df
+
+df <- merged_df
+head(df)
+
+df <- df[df$term != "(Intercept)", ]
+df$term <- "Slope"
+
+# Calculate empirical means for each term and quality
+empirical_means <- df_minus %>%
+  group_by(term, quality) %>%
+  summarize(mean_estimate = mean(estimate), .groups = "drop")
+
+empirical_means
+
+# Define custom colors for vertical lines (ensuring clear distinction)
+vline_colors <- c(
+  "Theoretical Mean" = "black",
+  "Empirical Mean: High Quality" = "#D55E00",  # Distinct orange
+  "Empirical Mean: Low Quality" = "#009E73"    # Distinct green
+)
+
+# Create the combined plot with legend
+combined_plot_minus <- ggplot(df, aes(x = estimate, fill = quality)) +
+  geom_histogram(alpha = 0.4, position = "identity", bins = 30, color = "black") +
+  
+  # Theoretical Mean Lines
+  geom_vline(data = subset(df, term == "(Intercept)"),
+             aes(xintercept = 0, color = "Theoretical Mean"), linewidth = 0.8, linetype = "dashed") +
+  geom_vline(data = subset(df, term == "g1_imp"),
+             aes(xintercept = 1, color = "Theoretical Mean"), linewidth = 0.8, linetype = "dashed") +
+  
+  # Empirical Mean Lines (High Quality)
+  geom_vline(data = empirical_means %>% filter(quality == "high"),
+             aes(xintercept = mean_estimate, color = "Empirical Mean: High Quality"), linewidth = 0.8, linetype = "dashed") +
+  
+  # Empirical Mean Lines (Low Quality)
+  geom_vline(data = empirical_means %>% filter(quality == "low"),
+             aes(xintercept = mean_estimate, color = "Empirical Mean: Low Quality"), linewidth = 0.8, linetype = "dashed") +
+  
+  scale_fill_manual(name = "Imputation Quality", values = c("high" = "red", "low" = "blue")) +  
+  scale_color_manual(name = "Vertical Lines", values = vline_colors, guide = guide_legend(override.aes = list(
+    linetype = "solid",   # Solid lines in legend
+    linewidth = 2,        # Thicker for visibility
+    size = .6  # Custom height of short lines
+  ))) +
+  facet_wrap(~ term, scales = "free") +
+  labs(x = "Estimate", y = "Frequency") +
+  theme_minimal() +
+  theme(
+    legend.position = "right",
+    legend.spacing.y = unit(20, "pt"),
+    legend.title = element_text(size = 12, face = "bold"),  
+    legend.text = element_text(size = 10),
+    legend.box = "vertical",
+    
+    # Increase facet label (Intercept & Slope)
+    strip.text = element_text(size = 14, face = "bold"),  
+    
+    # Increase axis labels (Estimate & Frequency)
+    axis.title = element_text(size = 14, face = "bold"),
+    
+    # Increase axis tick labels
+    axis.text = element_text(size = 12)
+  )
+
+combined_plot_minus
+
+ggsave(glue("{simple_reg_coefs_dir}/coefs_histograms_2.png"), plot = combined_plot_minus, width = 12, height = 12, dpi = 300)

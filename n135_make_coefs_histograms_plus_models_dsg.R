@@ -12,7 +12,7 @@ head(df)
 rsid_df <- read_parquet("/Users/mmir/Library/CloudStorage/Dropbox/git/250115_CSF_A21_WGS_imp_200_SNPS/med/model_data_1.parquet")
 rsid_df
 
-rsid_df_selected <- rsid_df %>% select(rsid, info_score, quality)
+rsid_df_selected <- rsid_df %>% select(rsid, info_score)
 rsid_df_selected
 
 rsid_df_selected_unique <- rsid_df_selected %>% distinct(rsid, .keep_all = TRUE)
@@ -83,4 +83,14 @@ final_plot <- combined_plot / high_plot / low_plot +
 print(final_plot)
 
 ggsave(glue("{models_coefs_dsg_dir}/plus_coef_hist_dsg.png"), final_plot)
+
+
+##
+high_plot <- create_histogram(df_plus %>% filter(quality == "high"), "red", mean_high, "Empirical Mean: High Quality", "High Quality - Slope Distribution")
+low_plot <- create_histogram(df_plus %>% filter(quality == "low"), "blue", mean_low, "Empirical Mean: Low Quality", "Low Quality - Slope Distribution")
+
+final_plot <- high_plot / low_plot
+print(final_plot)
+
+ggsave(glue("{models_coefs_dsg_dir}/plus_coef_hist_dsg_separate.png"), final_plot)
 

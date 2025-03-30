@@ -74,3 +74,30 @@ print(final_plot)
 
 ggsave(glue("{models_coefs_dir}/plus_coef_hist.png"), final_plot)
 
+
+
+# for 250320 lab meeting presentation
+high_plot <- create_histogram(df_plus %>% filter(quality == "high"), "red", mean_high, "Empirical Mean: High Quality", "Slope Distribution")
+low_plot <- create_histogram(df_plus %>% filter(quality == "low"), "blue", mean_low, "Empirical Mean: Low Quality", "Slope Distribution")
+
+
+# Arrange the plots and the legend
+final_plot <- high_plot | low_plot
+
+# Display the final plot
+print(final_plot)
+
+# Save the final plot
+ggsave(glue("{models_coefs_dir}/plus_coef_hist_2.png"), final_plot)
+
+
+###
+high_plot <- create_histogram(df_plus %>% filter(quality == "high"), "red", mean_high, "Empirical Mean: High Quality", "High Quality - Slope Distribution")
+low_plot <- create_histogram(df_plus %>% filter(quality == "low"), "blue", mean_low, "Empirical Mean: Low Quality", "Low Quality - Slope Distribution")
+
+final_plot <- high_plot / low_plot
+print(final_plot)
+
+ggsave(glue("{models_coefs_dir}/plus_coef_hist_3.png"), final_plot)
+
+

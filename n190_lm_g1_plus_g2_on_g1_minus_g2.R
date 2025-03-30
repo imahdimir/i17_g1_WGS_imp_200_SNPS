@@ -71,12 +71,15 @@ models_details$model_metrics_df
 
 # Get unique rsid values
 unique_rsids <- unique(df$rsid)
+unique_rsids = unique_rsids[unique_rsids !="rs11415427"]
+
+
 
 combined_coef_dfs <- data.frame()
 combined_model_metrics_df <- data.frame()
 
 
-# Loop through each unique rsid and apply the function
+# Loop through each unique rsid
 for (rsid in unique_rsids) {
   # Apply the function
   m <- fit_and_save_models(data = df, rsid = rsid)
