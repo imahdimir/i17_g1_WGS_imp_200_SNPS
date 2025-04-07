@@ -5,6 +5,10 @@
 .LSOverride
 .idea
 
+# Ignore R data and history files
+*.RData
+*.Rhistorytoo
+
 # Icon must end with two \r
 Icon
 
