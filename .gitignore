@@ -7,7 +7,7 @@
 
 # Ignore R data and history files
 *.RData
-*.Rhistorytoo
+*.Rhistory
 
 # Icon must end with two \r
 Icon
