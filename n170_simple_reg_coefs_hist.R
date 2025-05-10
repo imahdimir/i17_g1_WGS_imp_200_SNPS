@@ -2,12 +2,12 @@ list.of.packages <- c("data.table", "dplyr", "magrittr", "tidyverse", "plinkFile
 lapply(list.of.packages, library, character.only = TRUE)
 
 
-simple_reg_coefs_dir <- "/Users/mmir/Library/CloudStorage/Dropbox/git/250115_CSF_A21_WGS_imp_200_SNPS/out/simple_reg_models_coefficients"
+simple_reg_coefs_dir <- "/Users/mmir/Library/CloudStorage/Dropbox/git/i16_n1_CF_SSGAC_Alex_WGS_imp_200_SNPs/out/simple_reg_models_coefficients"
 
 df <- read_excel(glue("{simple_reg_coefs_dir}/simple_reg_coefficients.xlsx"))
 head(df)
 
-rsid_df <- read_parquet("/Users/mmir/Library/CloudStorage/Dropbox/git/250115_CSF_A21_WGS_imp_200_SNPS/med/model_data_1.parquet")
+rsid_df <- read_parquet("/Users/mmir/Library/CloudStorage/Dropbox/git/i16_n1_CF_SSGAC_Alex_WGS_imp_200_SNPs/med/model_data_1.parquet")
 rsid_df
 
 rsid_df_selected <- rsid_df %>% select(rsid, info_score, quality)
@@ -121,12 +121,12 @@ ggsave(glue("{simple_reg_coefs_dir}/coefs_histograms.png"), plot = final_plot_mi
 ###
 
 
-simple_reg_coefs_dir <- "/Users/mmir/Library/CloudStorage/Dropbox/git/250115_CSF_A21_WGS_imp_200_SNPS/out/simple_reg_models_coefficients"
+simple_reg_coefs_dir <- "/Users/mmir/Library/CloudStorage/Dropbox/git/i16_n1_CF_SSGAC_Alex_WGS_imp_200_SNPs/out/simple_reg_models_coefficients"
 
 df <- read_excel(glue("{simple_reg_coefs_dir}/simple_reg_coefficients.xlsx"))
 head(df)
 
-rsid_df <- read_parquet("/Users/mmir/Library/CloudStorage/Dropbox/git/250115_CSF_A21_WGS_imp_200_SNPS/med/model_data_1.parquet")
+rsid_df <- read_parquet("/Users/mmir/Library/CloudStorage/Dropbox/git/i16_n1_CF_SSGAC_Alex_WGS_imp_200_SNPs/med/model_data_1.parquet")
 rsid_df
 
 rsid_df_selected <- rsid_df %>% select(rsid, info_score, quality)
@@ -144,7 +144,7 @@ df <- df[df$term != "(Intercept)", ]
 df$term <- "Slope"
 
 # Calculate empirical means for each term and quality
-empirical_means <- df_minus %>%
+empirical_means <- df %>%
   group_by(term, quality) %>%
   summarize(mean_estimate = mean(estimate), .groups = "drop")
 
@@ -159,11 +159,8 @@ vline_colors <- c(
 
 # Create the combined plot with legend
 combined_plot_minus <- ggplot(df, aes(x = estimate, fill = quality)) +
-  geom_histogram(alpha = 0.4, position = "identity", bins = 30, color = "black") +
+  geom_histogram(alpha = 0.6, position = "identity", bins = 30, color = "black") +
   
-  # Theoretical Mean Lines
-  geom_vline(data = subset(df, term == "(Intercept)"),
-             aes(xintercept = 0, color = "Theoretical Mean"), linewidth = 0.8, linetype = "dashed") +
   geom_vline(data = subset(df, term == "g1_imp"),
              aes(xintercept = 1, color = "Theoretical Mean"), linewidth = 0.8, linetype = "dashed") +
   
@@ -185,20 +182,20 @@ combined_plot_minus <- ggplot(df, aes(x = estimate, fill = quality)) +
   labs(x = "Estimate", y = "Frequency") +
   theme_minimal() +
   theme(
-    legend.position = "right",
+    legend.position = "bottom",
     legend.spacing.y = unit(20, "pt"),
     legend.title = element_text(size = 12, face = "bold"),  
     legend.text = element_text(size = 10),
     legend.box = "vertical",
     
     # Increase facet label (Intercept & Slope)
-    strip.text = element_text(size = 14, face = "bold"),  
+    strip.text = element_text(size = 24, face = "bold"),  
     
     # Increase axis labels (Estimate & Frequency)
-    axis.title = element_text(size = 14, face = "bold"),
+    axis.title = element_text(size = 24, face = "bold"),
     
     # Increase axis tick labels
-    axis.text = element_text(size = 12)
+    axis.text = element_text(size = 24)
   )
 
 combined_plot_minus

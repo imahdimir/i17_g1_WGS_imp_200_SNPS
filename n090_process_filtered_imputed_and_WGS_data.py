@@ -29,7 +29,7 @@ class Var :
 
 
 class Directory :
-    proj_csf = '/Users/mmir/Library/CloudStorage/Dropbox/git/250115_CSF_A21_WGS_imp_200_SNPS'
+    proj_csf = '/Users/mmir/Library/CloudStorage/Dropbox/git/i16_n1_CF_SSGAC_Alex_WGS_imp_200_SNPs'
     proj_csf = Path(proj_csf)
     pf = proj_csf
 
@@ -464,6 +464,7 @@ def get_some_basic_stats_on_model_data() :
     df[[v.rsid , v.quality]].drop_duplicates().groupby(v.quality).count()
 
     ##
+    _df1 = df.groupby(v.quality).describe()
 
 
 ##
