@@ -5,7 +5,7 @@ from bgen_reader import open_bgen
 from mirutil.ns import make_class_instance_fr_json_file
 
 
-Env = make_class_instance_fr_json_file('n005_ENV.json')
+Env = make_class_instance_fr_json_file('b_000__ENV.json')
 
 
 class Var :
